@@ -1,0 +1,12 @@
+[
+  {
+    "id": 123456,
+    "content": "Test memory",
+    "timestamp": "2026-01-03T10:00:00.000Z"
+  },
+  {
+    "id": 789012
+    "content": "Missing comma here causes syntax error"
+    "timestamp": "2026-01-03T11:00:00.000Z"
+  }
+]

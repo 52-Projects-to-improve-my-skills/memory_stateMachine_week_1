@@ -1,0 +1,9 @@
+# Archivos del agente central — solo existen localmente, no se commitean
+AGENTS.md
+skills
+setup-agent.sh
+instructions.md
+opencode.json
+
+# Carpeta del agente local (residuos o configuración local)
+.github/agents/
