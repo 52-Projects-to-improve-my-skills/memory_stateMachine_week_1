@@ -1,119 +1,102 @@
 # 🎯 Memory State Machine
 
-**Lee en English:** `README.md`  
+**Lee en English:** README.md  
 **Tipo de proyecto:** JavaScript (Node.js) — Semana 1
 
 ---
 
-## Resumen ejecutivo
+1. Objetivo
 
-Aplicación de consola que implementa una máquina de estados finita (FSM) para capturar y persistir notas cortas ("memorias") desde la terminal. El diseño modela explícitamente estados y transiciones (IDLE, LISTENING, MEMORIZING, ERROR), garantizando que la aplicación solo ejecute transiciones válidas y que exista un flujo claro de recuperación frente a fallos.
+Construir una aplicación CLI que capture, persista y gestione notas cortas ("memorias") desde la terminal usando una máquina de estados finita (FSM). El énfasis está en modelar estados y transiciones explícitas (IDLE, LISTENING, MEMORIZING, ERROR) y en patrones básicos de persistencia y recuperación ante errores.
 
-Pertenece a la serie "52 Projects" (Semana 1) y demuestra diseño orientado a estados, separación de responsabilidades y patrones robustos de persistencia para herramientas CLI interactivas.
+2. Qué debes lograr (checklist)
 
----
+- [ ] Ejecutar `node main.js` en una terminal real (TTY) y ver el bloque de ayuda inicial.
+- [ ] Iniciar captura con `Ctrl+S`, escribir texto y finalizar con `Ctrl+D`; una nueva entrada se añade a `memories.json`.
+- [ ] Cancelar captura con `Ctrl+X` y verificar que no se creó ninguna memoria.
+- [ ] Simular un error de escritura (p. ej. permisos de sistema de archivos) y comprobar que `error_log.json` contiene el registro del fallo.
+- [ ] Salir con `Ctrl+C` y evitar dejar la terminal en modo raw (si se implementan handlers de salida).
 
-## Inicio rápido
+3. Conocimientos necesarios
+
+- Node.js y `readline` para entrada por terminal.
+- Operaciones de archivos y JSON en Node (`fs`).
+- Máquinas de estado finitas: estados, transiciones y acciones permitidas.
+- Conceptos de TTY y modo raw.
+
+4. Inicio rápido
 
 Requisitos:
-- Node.js v14+
+- Node.js v16+
 
 Ejecutar:
 ```bash
-# desde la raíz del proyecto
-npm install      # opcional si hay dependencias
+# desde la raíz del proyecto (no hay dependencias externas por defecto)
 node main.js
 ```
 
-Controles interactivos:
-- `Ctrl+S` — iniciar captura de entrada (entrar en LISTENING)
-- Escribir texto — se agrega al buffer
+Nota: `npm install` no es necesario a menos que añadas dependencias o `package.json`.
+
+Controles interactivos principales:
+- `Ctrl+S` — empezar captura (LISTENING)
+- Escribir — añadir al buffer
 - `Enter` — nueva línea
 - `Backspace` — borrar carácter
-- `Ctrl+D` — finalizar y tratar de guardar (entrar en MEMORIZING)
-- `Ctrl+X` — cancelar entrada y volver a IDLE
-- `Ctrl+R` — en ERROR, reintentar guardar
-- `Ctrl+C` — salir de la aplicación
+- `Ctrl+D` — terminar y guardar (MEMORIZING)
+- `Ctrl+X` — cancelar y volver a IDLE
+- `Ctrl+R` — reintentar guardado en ERROR
+- `Ctrl+C` — salir
 
-Al iniciar, la aplicación muestra un pequeño bloque de ayuda y espera `Ctrl+S` para comenzar.
+5. Casos de uso
 
----
+- Tomar notas rápidas desde la terminal.
+- Aprender y experimentar con FSMs en aplicaciones reales.
+- Base para una bitácora sencilla con persistencia JSON.
 
-## Qué enseña este proyecto
+6. Alcance (qué entra / qué no entra)
 
-- Modelar programas con FSM (estados, eventos, transiciones)
-- Diseñar transiciones explícitas y testeables
-- Persistencia básica de archivos y recuperación ante errores
-- Organización de una pequeña app CLI con responsabilidades claras
+Incluye:
+- FSM y persistencia local en `memories.json`.
+- Log básico de errores en `error_log.json`.
 
----
+No incluye (esta semana):
+- Interfaz gráfica o sincronización remota.
+- Tests automáticos integrados.
 
-## Arquitectura (alto nivel)
+7. Usos futuros
 
-Responsabilidades principales:
-- StateManager: mantener estado actual y validar transiciones
-- States: encapsulan enter/handle/exit por estado
-- InputHandler: capturar y normalizar entrada de terminal
-- Storage: persistir en `memories.json`, registrar errores en `error_log.json`
+- Añadir comandos CRUD para memorias.
+- Migrar el almacenamiento a `fs.promises` y escrituras atómicas.
+- Reescribir a TypeScript o portar a Rust.
 
-Datos escritos:
-- `memories.json` — arreglo de objetos memoria:
-```json
-[
-  {
-    "id": 1678890000000,
-    "content": "Mi primera memoria",
-    "timestamp": "2024-03-25T12:34:56.789Z"
-  }
-]
-```
-- `error_log.json` — arreglo de objetos de error con `id`, `timestamp`, `error`, `stack`, `attemptedContent`.
+8. Ideas de escalado
 
----
+1. Extraer un adaptador de almacenamiento y ofrecer implementaciones JSON/SQLite/remota.
+2. Añadir indexado y búsqueda en las memorias.
+3. Ejecutar como servicio (daemon) exponiendo una API local.
 
-## Resumen de la FSM
+9. Pistas arquitectónicas
 
-Estados: `IDLE`, `LISTENING`, `MEMORIZING`, `ERROR`.  
-Transiciones clave:
-- `IDLE` —(Ctrl+S)→ `LISTENING`: empezar captura
-- `LISTENING` —(Ctrl+D)→ `MEMORIZING`: intentar guardar contenido
-- `MEMORIZING` —(success)→ `IDLE`: guardado correcto
-- `MEMORIZING` —(error)→ `ERROR`: fallo en guardado (se registra)
-- `ERROR` —(Ctrl+R)→ `MEMORIZING`: reintentar guardado
-- `LISTENING` —(Ctrl+X)→ `IDLE`: cancelar entrada
-- `ERROR` —(Ctrl+X)→ `IDLE`: cancelar y descartar
+- Modularizar responsabilidades: `stateManager`, `states`, `inputHandler`, `storage`.
+- Mantener transiciones y acciones explícitas por estado.
+- Logear errores con metadatos: `stack`, `attemptedContent`, `timestamp`.
 
-Las transiciones explícitas evitan estados inválidos y hacen el comportamiento predecible.
+10. Solución de problemas
 
----
+- Ejecutar en una terminal TTY real; algunas consolas integradas no soportan modo raw.
+- Revisar permisos y validez de los archivos JSON (`memories.json`, `error_log.json`).
 
-## Solución de problemas
+11. Limitaciones y mejoras sugeridas
 
-- Programa no responde: ejecutar en una terminal real (TTY), no en la consola integrada del IDE; Node >= 14.
-- Error al escribir archivos: comprobar permisos de escritura, espacio en disco y validez de `memories.json`/`error_log.json`.
-- Pérdida del comportamiento raw: añadir handlers de señales para restaurar `process.stdin.setRawMode(false)` al salir.
+- La E/S actual usa llamadas síncronas de `fs` que pueden bloquear el event loop; migrar a promesas y escrituras atómicas.
+- Añadir handlers para `exit`, `SIGINT` y `uncaughtException` para restaurar el TTY en salidas abruptas.
 
----
+12. Reflexión (Semana 1)
 
-## Limitaciones y mejoras sugeridas
+- La FSM clarifica rutas de fallo y recuperación, reduciendo la complejidad incidental.
+- Reto: manejo de entrada raw en Node y restauración segura del TTY.
 
-- La E/S puede ser síncrona; migrar a `fs.promises` y escrituras atómicas.
-- Añadir handlers de señales para restaurar el estado TTY en salidas abruptas.
-- Implementar comandos para listar/leer/eliminar memorias y añadir pruebas unitarias.
-- Reescribir a TypeScript para tipado más robusto.
-- Portar a Rust para practicar FSM con enums y ownership.
-
----
-
-## Reflexión (Semana 1)
-
-- Construir esto aclara que una FSM es más que condicionales: los estados encapsulan comportamiento y las transiciones son constructos principales.
-- Parte difícil: manejo de entrada raw en Node. Solución: `readline` y buena gestión del TTY.
-- Próximos pasos técnicos: escrituras atómicas, TypeScript y tests.
-
----
-
-## Autor y licencia
+13. Autor & licencia
 
 - Autor: Carlos Enrique Cochero Ramos — GitHub: @caertos  
 - Licencia: MIT — ver `LICENSE`
